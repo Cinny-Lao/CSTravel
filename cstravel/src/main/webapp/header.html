@@ -1,0 +1,149 @@
+<!--网页头部（页眉） -->
+<script src="js/getParameter.js"></script>
+<script>
+
+$(function () {
+    //查询已登录用户名
+    $.get("userServlet/findLoginUser",{},function (data) {
+        if(data.flag){
+            var msg = "欢迎回来，" + data.errorMsg;
+            $("#login_username").html(msg);
+        }
+
+    });
+    
+    //查询天气
+    $.get("weatherServlet",{},function (data) {
+        //获取天气（晴，阴...）
+        var weather = data.HeWeather6[0].now.cond_txt;
+        //获取温度
+        var tmp = data.HeWeather6[0].now.tmp;
+        //获取风向
+        var wind_dir = data.HeWeather6[0].now.wind_dir;
+        //获取体感温度
+        var fl = data.HeWeather6[0].now.fl;
+        //获取温度对应码
+        var cond_code = data.HeWeather6[0].now.cond_code;
+        $("#weather").html(weather);
+        $("#tmp").html(tmp);
+        $("#wind_dir").html(wind_dir);
+        $("#fl").html(fl);
+        $("#weather_img").attr("src","img/cond-icon-heweather/"+cond_code+".png");
+    })
+
+    //查询分类数据
+    $.get("categoryServlet",{},function (data) {
+        var li = '';
+        for(i=0; i<data.length; i++){
+            li += '<li><a href="gl_search.html?cid='+data[i].cid+'&cname='+data[i].cname+'">'+data[i].cname+'</a></li>';
+        }
+        $("#category").html(li);
+    });
+
+    //点击搜索
+    $("#search_btn").click(search);
+
+    //回车搜索
+    $("#search_input").keydown(function (e) {
+        if(!e)
+            var e = window.event;
+        if(e.keyCode == 13)
+            search();
+    });
+
+
+
+    function search() {
+        var sname = $("#search_input").val();
+        var cid = getParameter("cid");
+        var cname = getParameter("cname");
+
+        if(cname){
+            cname = window.decodeURIComponent(cname);
+        }
+        if(!cid && !cname && sname==""){
+            //搜索框什么也没输入时不跳转
+            location.href="http://localhost:80/cstravel";
+        }else{
+
+        location.href="http://localhost:80/cstravel/gl_search.html?cid="+cid+"&cname="+cname+"&sname="+sname;
+        }
+    }
+    
+
+});
+
+</script>
+
+<header id="header">
+    <div class="container-fluid">
+        <div class="row">
+            <img src="img/top.jpg" class="img-responsive">
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="not_login" id="not_login" style="margin-right: 15px">
+                <!--未登录状态-->
+                <a href="login.html">登录</a>
+                <a href="register.html">注册</a>
+            </div>
+            <div class="login" id="login">
+                <!--已登录状态-->
+                <span id="login_username"></span>
+                <a href="myCollection.html" style="margin-left: 10px">我的收藏</a>
+                <a href="javascript:location.href='userServlet/exit';" >退出</a>
+            </div>
+        </div>
+        <div class="row ">
+            <div class="col-md-3"></div>
+            <div class="col-md-6 col-xs-12">
+                <input class=" form-control search_input" id="search_input" style="margin-top: 10px;" >
+                <a href="javascript:;" class=" img-rounded serach_btn" id="search_btn" style="margin-top: 10px;" >搜索</a>
+            </div>
+            <div class="col-md-1 ">
+                <div class="img-circle hidden-xs">
+                    <img src="img/cond-icon-heweather/100.png" id="weather_img" style="height: 50px;float: right">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="row" style="margin-top: 5px">
+                    <span style="color: red;margin-right: 10px;">长沙</span><span id="weather" style="margin-right: 10px"></span><span id="tmp"></span><span>℃</span>
+                </div>
+                <div class="row">
+                    <span id="wind_dir" style="margin-right: 5px"></span><span>体感温度：</span><span id="fl"></span><span>℃</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!--导航栏-->
+        <div class="row">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <div class="navbar-header">
+                        <!-- 定义汉堡按钮 -->
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="index.html">首页</a>
+                    </div>
+
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="nav navbar-nav" id="category">
+
+
+
+                        </ul>
+                    </div><!-- /.navbar-collapse -->
+                </div><!-- /.container-fluid -->
+            </nav>
+        </div>
+    </div>
+</header>

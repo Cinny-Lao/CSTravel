@@ -1,0 +1,23 @@
+.search a {
+    color: #000;
+}
+.img{
+    float: right;
+}
+.serach_title{
+    margin-bottom: 5px;
+}
+.search_result{
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+.text{
+    font-size: 20px;
+}
+.page_num_inf{
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+.btn{
+    margin-right: 5px;
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>长沙旅游攻略-搜索结果</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link rel="stylesheet" type="text/css" href="css/gl_search.css">
+
+    <!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
+    <!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="js/bootstrap.min.js"></script>
+    <!--导入布局js，共享header和footer-->
+    <script type="text/javascript" src="js/include.js"></script>
+    <script src="js/getParameter.js"></script>
+
+    <script>
+
+        $(function () {
+            //获取参数
+            var cid = getParameter("cid");
+            var cname = getParameter("cname");
+            var sname = getParameter("sname");
+
+            //搜索结果的小标题展示
+            if(cname!="null" && cname.length>0){
+                cname = window.decodeURIComponent(cname);
+                if(sname){
+                    sname = window.decodeURIComponent(sname);
+                    $("#resultName").html(cname+">"+sname);
+                }else{
+                    $("#resultName").html(cname);
+                }
+            }else{
+                if(sname){
+                    sname = window.decodeURIComponent(sname);
+                    $("#resultName").html(sname);
+                }
+            }
+
+            load(cid,null,sname);
+        })
+
+        //异步请求查询数据并展示
+        function load(cid,currentPage,sname) {
+            $.get("schemeServlet/pageQuery",{cid:cid,currentPage:currentPage,sname:sname},function (data) {
+                //解析pageBean数据，展示到页面上
+                //总页数和总记录数
+                $("#totalPage").html(data.totalPage);
+                $("#totalCount").html(data.totalCount);
+                //展示页码
+                var lis="";
+                var firstPage = '<a class="btn btn-default" href="javascript:load('+cid+',1,\''+sname+'\')" role="button" style="margin-right: 5px">首页</a>';
+                //计算上一页的页码
+                var preNum = data.currentPage - 1;
+                if(preNum<=0){
+                    preNum=1;
+                }
+                var prePage = '<a class="btn btn-default" href="javascript:load('+cid+','+preNum+',\''+sname+'\')" role="button" style="margin-right: 5px">上一页</a>';
+                lis+=firstPage;
+                lis+=prePage;
+
+                //设置只显示5个页码
+                var begin ;
+                var end;
+                if(data.totalPage<=5){
+                    begin = 1;
+                    end = data.totalPage;
+                }else{
+                    begin = data.currentPage-2;
+                    end = data.currentPage+2;
+                    if(begin<1){
+                        begin = 1;
+                        end = begin+4;
+                    }
+                    if(end>data.totalPage){
+                        end = data.totalPage;
+                        begin = end-4;
+                    }
+                }
+                for(var i=begin; i<=end; i++){
+                    var li;
+                    //添加当前页码的样式
+                    if(data.currentPage==i){
+                        li = '<a class="btn btn-default" href="javascript:load('+cid+','+i+',\''+sname+'\')" role="button" style="background-color: #c8d9e8;margin-right: 5px">'+i+'</a>';
+                    }else{
+                        li = '<a class="btn btn-default" href="javascript:load('+cid+','+i+',\''+sname+'\')" role="button" style="margin-right: 5px">'+i+'</a>';
+                    }
+
+                    lis += li;
+                }
+                //计算下一页的页码
+                var nextNum = data.currentPage + 1;
+                if(nextNum>=data.totalPage){
+                    nextNum = data.totalPage;
+                }
+                var nextPage = '<a class="btn btn-default" href="javascript:load('+cid+','+nextNum+',\''+sname+'\')" role="button" style="margin-right: 5px">下一页</a>';
+                var lastPage = '<a class="btn btn-default" href="javascript:load('+cid+','+data.totalPage+',\''+sname+'\')" role="button" style="margin-right: 5px">末页</a>';
+                lis+=nextPage;
+                lis+=lastPage;
+                $("#pageNum").html(lis);
+
+
+                //展示列表数据
+                var schemeList = "";
+                for(var i=0; i<data.pagelist.length; i++){
+                    var scheme = data.pagelist[i];
+                    schemeList += '<div class="row thumbnail search_result">\n' +
+                        '        <div class="col-xs-12 col-sm-6 col-md-4 " >\n' +
+                        '            <div class="img">\n' +
+                        '                <img src="'+scheme.simg+'" >\n' +
+                        '            </div>\n' +
+                        '        </div>\n' +
+                        '        <div class="col-xs-6 col-md-8">\n' +
+                        '            <p class="text"><a href="#">'+scheme.sname+'</a></p>\n' +
+                        '            <p>'+scheme.introduction+'</p>\n' +
+                        '        </div>\n' +
+                        '    </div>';
+                }
+                $("#schemeList").html(schemeList);
+
+                //定位到页面顶部
+                window.scrollTo(0,0);
+
+            });
+        }
+
+    </script>
+
+</head>
+<body>
+<!--引入头部-->
+<div id="header"></div>
+
+<div class="container search">
+    <div class="row serach_title">
+            <img src="img/search.png" alt="">
+            <span>长沙旅游攻略></span><span id="resultName">搜索结果</span>
+    </div>
+
+    <div id="schemeList">
+    <div class="row thumbnail search_result">
+        <div class="col-xs-12 col-sm-6 col-md-4 " >
+            <div class="img">
+                <img src="img/scheme/small/1.jpg" >
+            </div>
+        </div>
+        <div class="col-xs-6 col-md-8">
+            <p class="text"><a href="#">【长沙旅游攻略一日游】</a></p>
+            <p>1-2月出发，网付立享￥1099/2人起！爆款位置有限，抢完即止！</p>
+        </div>
+    </div>
+    </div>
+
+
+
+    <div class="row">
+        <div class="page_num_inf">
+            <i></i> 共
+            <span id="totalPage"></span> 页 <span id="totalCount"></span> 条
+        </div>
+    </div>
+    <div class="row">
+        <div class="pageNum" id="pageNum">
+
+
+        </div>
+    </div>
+
+
+
+</div>
+
+<!--导入页脚-->
+<div id="footer"></div>
+
+</body>
+</html>
